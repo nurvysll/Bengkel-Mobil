@@ -30,7 +30,6 @@ struct Sparepart {
 struct Sparepart daftarSparepart[MAX_SPAREPART];
 int jumlahSparepartSekarang = 0;
 
-// --- Struct untuk menampung item di struk ---
 struct ItemStruk {
     char kode[10];
     char nama[50];
@@ -38,7 +37,6 @@ struct ItemStruk {
     int qty; // Kuantitas
 };
 
-// --- (UPDATE) Database Mini Mobil yang Sedang Diservis ---
 struct MobilServis {
     char namaPelanggan[50];
     char platNomor[15];

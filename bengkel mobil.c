@@ -51,8 +51,6 @@ struct MobilServis daftarMobil[MAX_MOBIL_SERVIS];
 int jumlahMobilSekarang = 0;
 
 
-// --- Fungsi Animasi & Utility ---
-
 void loadingAnimation() {
     printf("Harap tunggu, sistem sedang dimuat...\n");
     for (int i = 0; i <= 100; i++) {

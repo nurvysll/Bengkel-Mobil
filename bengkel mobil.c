@@ -84,8 +84,6 @@ void bersihkanBuffer() {
 }
 
 
-// --- Fungsi Sistem Akun ---
-
 void registerSystem() {
     system("cls");
     printf("=== BUAT AKUN BARU ===\n");

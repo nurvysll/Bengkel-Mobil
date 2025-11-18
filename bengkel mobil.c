@@ -3,7 +3,7 @@
 #include <stdlib.h>  // Untuk system("cls") dan exit()
 #include <windows.h> // Untuk Sleep()
 
-//COBA KITA TES TES//
+
 
 struct Akun {
     char username[50];

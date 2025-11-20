@@ -25,7 +25,7 @@ int jumlahJasaSekarang = 0;
 struct Sparepart {
     char kodeSparepart[10];
     char namaSparepart[50];
-    int stok; // Ini yang labelnya kita ganti jadi "Jumlah"
+    int stok; // Ini yang labelnya kita ganti jadi 
     int hargaSparepart;
 };
 #define MAX_SPAREPART 50

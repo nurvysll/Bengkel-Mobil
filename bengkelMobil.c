@@ -208,6 +208,67 @@ void tambahList() {
         }
     }
 }
+void editLayanan() {
+    header("Edit Sparepart/Jasa");
+    if (layananCount == 0) { printf("Belum ada layanan.\n"); return; }
+    listLayanan();
+    int id;
+    printf("Masukkan ID: ");
+    if (scanf("%d", &id) != 1) { clearInput(); printf("Input tidak valid.\n"); return; }
+    clearInput();
+    int idx = findLayananById(id);
+    if (idx < 0) { printf("ID tidak ditemukan.\n"); return; }
+
+    printf("Data lama: Tipe=%s | Nama=%s | Harga=Rp %d\n",
+           (layananDB[idx].tipe==0?"Jasa":"Sparepart"),
+           layananDB[idx].nama, layananDB[idx].harga);
+
+    char namaBaru[64];
+    int hargaBaru, tipeBaru;
+
+    printf("Nama baru (kosongkan jika tidak diubah): ");
+    fgets(namaBaru, sizeof(namaBaru), stdin);
+    namaBaru[strcspn(namaBaru, "\n")] = 0;
+    if (strlen(namaBaru) > 0) strcpy(layananDB[idx].nama, namaBaru);
+
+    printf("Harga baru (0 jika tidak diubah): ");
+    if (scanf("%d", &hargaBaru) != 1) { clearInput(); printf("Input tidak valid.\n"); return; }
+    clearInput();
+    if (hargaBaru > 0) layananDB[idx].harga = hargaBaru;
+
+    printf("Tipe baru (0=Jasa, 1=Sparepart, -1=tidak diubah): ");
+    if (scanf("%d", &tipeBaru) != 1) { clearInput(); printf("Input tidak valid.\n"); return; }
+    clearInput();
+    if (tipeBaru == 0 || tipeBaru == 1) layananDB[idx].tipe = tipeBaru;
+
+    printf("Berhasil diperbarui.\n");
+}
+
+void hapusLayanan() {
+    header("Hapus Sparepart/Jasa");
+    if (layananCount == 0) { printf("Belum ada layanan.\n"); return; }
+    listLayanan();
+    int id;
+    printf("Masukkan ID yang akan dihapus: ");
+    if (scanf("%d", &id) != 1) { clearInput(); printf("Input tidak valid.\n"); return; }
+    clearInput();
+    int idx = findLayananById(id);
+    if (idx < 0) { printf("ID tidak ditemukan.\n"); return; }
+
+    for (int i = idx; i < layananCount-1; i++) layananDB[i] = layananDB[i+1];
+    layananCount--;
+    printf("Layanan ID %d dihapus.\n", id);
+}
+
+void listTransaksi() {
+    header("Daftar Transaksi");
+    if (trxCount == 0) { printf("Belum ada transaksi.\n"); return; }
+    for (int i = 0; i < trxCount; i++) {
+        printf("ID: %d | Pemilik: %s | Nopol: %s | Total: Rp %d | Lunas: %s\n",
+               trxDB[i].id, trxDB[i].pemilik, trxDB[i].nopol,
+               trxDB[i].total, (trxDB[i].lunas ? "Ya" : "Belum"));
+    }
+}
 
 void menuUtama() {
     int pil;

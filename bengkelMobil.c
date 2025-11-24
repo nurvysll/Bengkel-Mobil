@@ -8,11 +8,15 @@
 #define MERAH     "\x1b[41m"
 #define PUTIH     "\x1b[47m"
 #define KARAKTER_BENDERA ' '
-#define JEDA_MIKRODETIK 40000
+#define JEDA_MS 40
 #define LEBAR_MULTIPLIER 7
 
 #define MAX 100
 #define MAX_AKUN 100
+#define MAX_QUEUE 50
+
+void menuUtama (void);
+void programBendera (void);
 
 struct Akun {
     char username[50];
@@ -43,16 +47,30 @@ typedef struct {
 } OrderItem;
 
 typedef struct {
+    char namaCustomer[100];
+    char plat[30];
+    char jenisMobil[50];
+} Mobil;
+
+typedef struct {
     int id;
     int totalItem;
     OrderItem items[100];
     int totalHarga;
     int paid;
+    Mobil mobil;
 } Order;
 
 Order orders[MAX];
 int totalOrders = 0;
 int nextOrderID = 1;
+
+int queueLimit = MAX_QUEUE;
+
+void bersihkan_input_buffer() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
+}
 
 void loading() {
     printf("Harap tunggu, sistem sedang dimuat...\n");
@@ -500,7 +518,6 @@ void hapusList() {
 
         nomor--;
 
-        // Geser array
         for (int i = nomor; i < totalJasa - 1; i++) {
             jasaList[i] = jasaList[i + 1];
         }
@@ -708,10 +725,7 @@ void tambahanPesanan() {
     getch();
 }
 
-
-
 void inputMobilServis() {
-
     int currentQueue = 0;
     for (int i = 0; i < totalOrders; i++) {
         if (orders[i].paid == 0) currentQueue++;
@@ -822,7 +836,7 @@ void cetak_baris_bendera_animasi(int lebar, char *warna) {
     for (int j = 0; j < lebar; j++) {
         printf("%c", KARAKTER_BENDERA);
         fflush(stdout);
-        usleep(JEDA_MIKRODETIK);
+        Sleep(JEDA_MS);
     }
     printf("%s\n", RESET);
     fflush(stdout);
@@ -864,15 +878,8 @@ void cetak_bendera_loading(int tinggi_input) {
     printf("\n=======================================================\n");
 }
 
-
-
-
-void bersihkan_input_buffer() {
-    int c;
-    while ((c = getchar()) != '\n' && c != EOF);
-}
-
-int main() {
+void programBendera() {
+    system("cls");
     int tinggi = 0;
     char pilihan;
 
@@ -975,10 +982,12 @@ void menuUtama() {
             case 7: printf(">> Cetak Struk\n"); system("pause"); break;
             case 8: printf(">> Pembayaran\n"); system("pause"); break;
             case 9:
-                rumahCerobong();
                 system("pause");
                 break;
-            case 10: printf(">> Bendera\n"); system("pause"); break;
+            case 10:
+            programBendera();
+            system("pause");
+            break;
             case 11: 
                 printf("Terima kasih!\n");
                 exit(0);

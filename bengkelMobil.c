@@ -5,6 +5,15 @@
 #include <windows.h>
 
 #define MAX 100
+#define MAX_AKUN 100
+
+struct Akun {
+    char username[50];
+    char password[50];
+};
+
+struct Akun daftarAkun[MAX_AKUN];
+int jumlahAkunSekarang = 0;
 
 struct sparePart{
     char nama[50];
@@ -19,6 +28,80 @@ struct jasa{
 
 int totalSparepart= 2;
 int totalJasa = 2;
+
+typedef struct {
+    char namaItem[50];
+    int jumlah;
+    int harga;
+} OrderItem;
+
+typedef struct {
+    int id;
+    int totalItem;
+    OrderItem items[100];
+    int totalHarga;
+    int paid;
+} Order;
+
+Order orders[MAX];
+int totalOrders = 0;
+int nextOrderID = 1;
+
+void loading() {
+    printf("Harap tunggu, sistem sedang dimuat...\n");
+    for (int i = 0; i <= 100; i++) {
+        printf("\r[");
+        int barWidth = 20;
+        int pos = (i * barWidth) / 100;
+        for (int j = 0; j < barWidth; j++) {
+            if (j < pos) printf("=");
+            else if (j == pos) printf(">");
+            else printf(" ");
+        }
+        printf("] %d%% ", i);
+        fflush(stdout);
+        Sleep(30);
+    }
+    printf("\nSistem berhasil dimuat!\n\n");
+    Sleep(1000);
+    system("cls");
+}
+
+void buatAkun() {
+    system("cls");
+    printf("=== BUAT AKUN BARU ===\n");
+    if (jumlahAkunSekarang >= MAX_AKUN) {
+        printf("Maaf, kapasitas akun sudah penuh.\n");
+        Sleep(2000);
+        system("cls");
+        return;
+    }
+    char usernameBaru[50];
+    printf("Masukkan username baru: ");
+    scanf("%s", usernameBaru);
+    int duplikat = 0;
+    for (int i = 0; i < jumlahAkunSekarang; i++) {
+        if (strcmp(daftarAkun[i].username, usernameBaru) == 0) {
+            duplikat = 1;
+            break;
+        }
+    }
+    if (duplikat == 1) {
+        printf("\nMaaf, username '%s' sudah terpakai.\n", usernameBaru);
+        Sleep(2000);
+        system("cls");
+        return;
+    }
+    char passwordBaru[50];
+    printf("Masukkan password baru: ");
+    scanf("%s", passwordBaru);
+    strcpy(daftarAkun[jumlahAkunSekarang].username, usernameBaru);
+    strcpy(daftarAkun[jumlahAkunSekarang].password, passwordBaru);
+    jumlahAkunSekarang++;
+    printf("\nAkun baru berhasil dibuat!\n");
+    Sleep(2000);
+    system("cls");
+}
 
 void login(){
     char username[25], password[25];
@@ -46,7 +129,7 @@ void login(){
         if (strcmp(username, "udin") == 0 && strcmp(password, "gokil") == 0) {
             printf("\n\n\nLogin berhasil!\n");
             printf("Mengalihkan ke Menu Utama...");
-            sleep(2);
+            Sleep(2000);
             system("cls");
             break;
         } else {
@@ -101,7 +184,6 @@ void listMenu(){
     printf("-------------------------------------------------------------------\n");
     printf("Tekan Enter untuk kembali ke Menu Utama...");
     getch();
-    menuUtama();
 }
 
 void listDefault(){
@@ -196,9 +278,8 @@ void tambahList() {
 
         else if (pilih == 3) {
             printf("\nMengalihkan ke Menu Utama...");
-            sleep(2);
+            Sleep(2000);
             system("cls");
-            menuUtama();
             return;
         }
 
@@ -208,66 +289,393 @@ void tambahList() {
         }
     }
 }
-void editLayanan() {
-    header("Edit Sparepart/Jasa");
-    if (layananCount == 0) { printf("Belum ada layanan.\n"); return; }
-    listLayanan();
-    int id;
-    printf("Masukkan ID: ");
-    if (scanf("%d", &id) != 1) { clearInput(); printf("Input tidak valid.\n"); return; }
-    clearInput();
-    int idx = findLayananById(id);
-    if (idx < 0) { printf("ID tidak ditemukan.\n"); return; }
 
-    printf("Data lama: Tipe=%s | Nama=%s | Harga=Rp %d\n",
-           (layananDB[idx].tipe==0?"Jasa":"Sparepart"),
-           layananDB[idx].nama, layananDB[idx].harga);
+void editList() {
+    int pilih;
+    system("cls");
+    printf("==================== EDIT DATA ====================\n\n");
+    printf("Pilih jenis data yang ingin diedit:\n");
+    printf("1. Sparepart\n");
+    printf("2. Jasa Pelayanan\n");
+    printf("3. Kembali\n");
+    printf("Pilihan: ");
+    scanf("%d", &pilih);
+    getchar();
 
-    char namaBaru[64];
-    int hargaBaru, tipeBaru;
+    if (pilih == 1) {
+        int nomor;
+        system("cls");
+        printf("=============== EDIT SPAREPART ===============\n\n");
 
-    printf("Nama baru (kosongkan jika tidak diubah): ");
-    fgets(namaBaru, sizeof(namaBaru), stdin);
-    namaBaru[strcspn(namaBaru, "\n")] = 0;
-    if (strlen(namaBaru) > 0) strcpy(layananDB[idx].nama, namaBaru);
+        if (totalSparepart == 0) {
+            printf("Belum ada data sparepart.\n");
+            getch();
+            return;
+        }
 
-    printf("Harga baru (0 jika tidak diubah): ");
-    if (scanf("%d", &hargaBaru) != 1) { clearInput(); printf("Input tidak valid.\n"); return; }
-    clearInput();
-    if (hargaBaru > 0) layananDB[idx].harga = hargaBaru;
+        for (int i = 0; i < totalSparepart; i++) {
+            printf("%d. %s | Stok: %d | Harga: Rp %d\n",
+                i + 1,
+                spareParts[i].nama,
+                spareParts[i].stok,
+                spareParts[i].harga
+            );
+        }
 
-    printf("Tipe baru (0=Jasa, 1=Sparepart, -1=tidak diubah): ");
-    if (scanf("%d", &tipeBaru) != 1) { clearInput(); printf("Input tidak valid.\n"); return; }
-    clearInput();
-    if (tipeBaru == 0 || tipeBaru == 1) layananDB[idx].tipe = tipeBaru;
+        printf("\nPilih nomor sparepart yang akan diedit: ");
+        scanf("%d", &nomor);
+        getchar();
 
-    printf("Berhasil diperbarui.\n");
-}
+        if (nomor < 1 || nomor > totalSparepart) {
+            printf("Nomor tidak valid!\n");
+            getch();
+            return;
+        }
+        nomor--;
 
-void hapusLayanan() {
-    header("Hapus Sparepart/Jasa");
-    if (layananCount == 0) { printf("Belum ada layanan.\n"); return; }
-    listLayanan();
-    int id;
-    printf("Masukkan ID yang akan dihapus: ");
-    if (scanf("%d", &id) != 1) { clearInput(); printf("Input tidak valid.\n"); return; }
-    clearInput();
-    int idx = findLayananById(id);
-    if (idx < 0) { printf("ID tidak ditemukan.\n"); return; }
+        char namaBaru[50];
+        int stokBaru, hargaBaru;
 
-    for (int i = idx; i < layananCount-1; i++) layananDB[i] = layananDB[i+1];
-    layananCount--;
-    printf("Layanan ID %d dihapus.\n", id);
-}
+        printf("\nNama baru (enter untuk tidak ubah): ");
+        fgets(namaBaru, sizeof(namaBaru), stdin);
+        namaBaru[strcspn(namaBaru, "\n")] = 0;
+        if (strlen(namaBaru) > 0)
+            strcpy(spareParts[nomor].nama, namaBaru);
 
-void listTransaksi() {
-    header("Daftar Transaksi");
-    if (trxCount == 0) { printf("Belum ada transaksi.\n"); return; }
-    for (int i = 0; i < trxCount; i++) {
-        printf("ID: %d | Pemilik: %s | Nopol: %s | Total: Rp %d | Lunas: %s\n",
-               trxDB[i].id, trxDB[i].pemilik, trxDB[i].nopol,
-               trxDB[i].total, (trxDB[i].lunas ? "Ya" : "Belum"));
+        printf("Stok baru (0 = tidak ubah): ");
+        scanf("%d", &stokBaru);
+        if (stokBaru > 0)
+            spareParts[nomor].stok = stokBaru;
+
+        printf("Harga baru (0 = tidak ubah): ");
+        scanf("%d", &hargaBaru);
+        if (hargaBaru > 0)
+            spareParts[nomor].harga = hargaBaru;
+
+        printf("\nSparepart berhasil diperbarui!\n");
+        getch();
     }
+    else if (pilih == 2) {
+        int nomor;
+        system("cls");
+        printf("=============== EDIT JASA ===============\n\n");
+
+        if (totalJasa == 0) {
+            printf("Belum ada data jasa.\n");
+            getch();
+            return;
+        }
+
+        for (int i = 0; i < totalJasa; i++) {
+            printf("%d. %s | Harga: Rp %d\n",
+                i + 1,
+                jasaList[i].jenis,
+                jasaList[i].harga
+            );
+        }
+
+        printf("\nPilih nomor jasa yang akan diedit: ");
+        scanf("%d", &nomor);
+        getchar();
+
+        if (nomor < 1 || nomor > totalJasa) {
+            printf("Nomor tidak valid!\n");
+            getch();
+            return;
+        }
+        nomor--;
+
+        char jenisBaru[50];
+        int hargaBaru;
+
+        printf("\nJenis jasa baru (enter untuk tidak ubah): ");
+        fgets(jenisBaru, sizeof(jenisBaru), stdin);
+        jenisBaru[strcspn(jenisBaru, "\n")] = 0;
+        if (strlen(jenisBaru) > 0)
+            strcpy(jasaList[nomor].jenis, jenisBaru);
+
+        printf("Harga baru (0 = tidak ubah): ");
+        scanf("%d", &hargaBaru);
+        if (hargaBaru > 0)
+            jasaList[nomor].harga = hargaBaru;
+
+        printf("\nJasa berhasil diperbarui!\n");
+        getch();
+    }
+
+    else if (pilih == 3) {
+        return;
+    }
+
+    else {
+        printf("Pilihan tidak valid!\n");
+        getch();
+    }
+}
+
+void hapusList() {
+    int pilih;
+    system("cls");
+    printf("==================== HAPUS DATA ====================\n\n");
+    printf("Pilih jenis data yang ingin dihapus:\n");
+    printf("1. Sparepart\n");
+    printf("2. Jasa Pelayanan\n");
+    printf("3. Kembali\n");
+    printf("Pilihan: ");
+    scanf("%d", &pilih);
+
+    if (pilih == 1) {
+        int nomor;
+        system("cls");
+        printf("=============== HAPUS SPAREPART ===============\n\n");
+
+        if (totalSparepart == 0) {
+            printf("Belum ada data sparepart.\n");
+            getch();
+            return;
+        }
+
+        for (int i = 0; i < totalSparepart; i++) {
+            printf("%d. %s | Stok: %d | Harga: Rp %d\n",
+                   i + 1,
+                   spareParts[i].nama,
+                   spareParts[i].stok,
+                   spareParts[i].harga);
+        }
+
+        printf("\nMasukkan nomor sparepart yang ingin dihapus: ");
+        scanf("%d", &nomor);
+
+        if (nomor < 1 || nomor > totalSparepart) {
+            printf("Nomor tidak valid!\n");
+            getch();
+            return;
+        }
+
+        nomor--;
+
+        for (int i = nomor; i < totalSparepart - 1; i++) {
+            spareParts[i] = spareParts[i + 1];
+        }
+
+        totalSparepart--;
+
+        printf("\nSparepart berhasil dihapus!\n");
+        getch();
+    }
+
+    else if (pilih == 2) {
+        int nomor;
+        system("cls");
+        printf("=============== HAPUS JASA ===============\n\n");
+
+        if (totalJasa == 0) {
+            printf("Belum ada data jasa.\n");
+            getch();
+            return;
+        }
+
+        for (int i = 0; i < totalJasa; i++) {
+            printf("%d. %s | Harga: Rp %d\n",
+                   i + 1,
+                   jasaList[i].jenis,
+                   jasaList[i].harga);
+        }
+
+        printf("\nMasukkan nomor jasa yang ingin dihapus: ");
+        scanf("%d", &nomor);
+
+        if (nomor < 1 || nomor > totalJasa) {
+            printf("Nomor tidak valid!\n");
+            getch();
+            return;
+        }
+
+        nomor--;
+
+        // Geser array
+        for (int i = nomor; i < totalJasa - 1; i++) {
+            jasaList[i] = jasaList[i + 1];
+        }
+
+        totalJasa--;
+
+        printf("\nJasa berhasil dihapus!\n");
+        getch();
+    }
+
+    else if (pilih == 3) {
+        return;
+    }
+
+    else {
+        printf("\nPilihan tidak valid!\n");
+        getch();
+    }
+}
+
+void pemesananJasa() {
+    system("cls");
+
+    Order *o = &orders[totalOrders];
+    o->id = nextOrderID++;
+    o->totalItem = 0;
+    o->totalHarga = 0;
+    o->paid = 0;
+
+    int pilih, jumlah;
+
+    while (1) {
+        system("cls");
+        printf("=== PEMESANAN JASA PERBAIKAN ===\n");
+        printf("1. Pilih Sparepart\n");
+        printf("2. Pilih Jasa\n");
+        printf("3. Selesai\n");
+        printf("Pilih: ");
+        scanf("%d", &pilih);
+
+        if (pilih == 1) {
+            for (int i = 0; i < totalSparepart; i++) {
+                printf("%d. %s (Rp %d)\n", i+1, spareParts[i].nama, spareParts[i].harga);
+            }
+
+            printf("Pilih sparepart: ");
+            int sp;
+            scanf("%d", &sp);
+
+            if (sp < 1 || sp > totalSparepart) continue;
+
+            printf("Jumlah: ");
+            scanf("%d", &jumlah);
+
+            strcpy(o->items[o->totalItem].namaItem, spareParts[sp-1].nama);
+            o->items[o->totalItem].jumlah = jumlah;
+            o->items[o->totalItem].harga = spareParts[sp-1].harga * jumlah;
+
+            o->totalHarga += o->items[o->totalItem].harga;
+            o->totalItem++;
+        }
+
+        else if (pilih == 2) {
+            for (int i = 0; i < totalJasa; i++) {
+                printf("%d. %s (Rp %d)\n", i+1, jasaList[i].jenis, jasaList[i].harga);
+            }
+
+            printf("Pilih jasa: ");
+            int js;
+            scanf("%d", &js);
+
+            if (js < 1 || js > totalJasa) continue;
+
+            strcpy(o->items[o->totalItem].namaItem, jasaList[js-1].jenis);
+            o->items[o->totalItem].jumlah = 1;
+            o->items[o->totalItem].harga = jasaList[js-1].harga;
+
+            o->totalHarga += o->items[o->totalItem].harga;
+            o->totalItem++;
+        }
+        else break;
+    }
+
+    if (o->totalItem == 0) {
+        printf("Pesanan kosong. Dibatalkan!\n");
+        getch();
+        return;
+    }
+
+    totalOrders++;
+    printf("Pesanan dibuat! ID: %d | Total: Rp %d\n", o->id, o->totalHarga);
+    getch();
+}
+
+void tambahanPesanan() {
+    if (totalOrders == 0) {
+        printf("Belum ada pesanan!\n");
+        getch();
+        return;
+    }
+
+    int id;
+    printf("Masukkan ID Pesanan: ");
+    scanf("%d", &id);
+
+    int idx = -1;
+    for (int i = 0; i < totalOrders; i++) {
+        if (orders[i].id == id) {
+            idx = i;
+            break;
+        }
+    }
+
+    if (idx == -1) {
+        printf("ID tidak ditemukan!\n");
+        getch();
+        return;
+    }
+
+    Order *o = &orders[idx];
+
+    if (o->paid == 1) {
+        printf("Pesanan sudah dibayar!\n");
+        getch();
+        return;
+    }
+
+    int pilih, jumlah;
+
+
+    while (1) {
+        system("cls");
+        printf("=== TAMBAH PESANAN (ID %d) ===\n", id);
+        printf("1. Tambah Sparepart\n");
+        printf("2. Tambah Jasa\n");
+        printf("3. Selesai\n");
+        printf("Pilih: ");
+        scanf("%d", &pilih);
+
+        if (pilih == 1) {
+            for (int i = 0; i < totalSparepart; i++)
+                printf("%d. %s (Rp %d)\n", i+1, spareParts[i].nama, spareParts[i].harga);
+
+            int sp;  
+            printf("Pilih sparepart: ");
+            scanf("%d", &sp);
+
+            if (sp < 1 || sp > totalSparepart) continue;
+
+            printf("Jumlah: ");
+            scanf("%d", &jumlah);
+
+            strcpy(o->items[o->totalItem].namaItem, spareParts[sp-1].nama);
+            o->items[o->totalItem].jumlah = jumlah;
+            o->items[o->totalItem].harga = spareParts[sp-1].harga * jumlah;
+
+            o->totalHarga += o->items[o->totalItem].harga;
+            o->totalItem++;
+        }
+        else if (pilih == 2) {
+            for (int i = 0; i < totalJasa; i++)
+                printf("%d. %s (Rp %d)\n", i+1, jasaList[i].jenis, jasaList[i].harga);
+
+            int js;
+            printf("Pilih jasa: ");
+            scanf("%d", &js);
+
+            if (js < 1 || js > totalJasa) continue;
+
+            strcpy(o->items[o->totalItem].namaItem, jasaList[js-1].jenis);
+            o->items[o->totalItem].jumlah = 1;
+            o->items[o->totalItem].harga = jasaList[js-1].harga;
+
+            o->totalHarga += o->items[o->totalItem].harga;
+            o->totalItem++;
+        }
+
+        else break;
+    }
+
+    printf("Total terbaru: Rp %d\n", o->totalHarga);
+    getch();
 }
 
 void menuUtama() {
@@ -299,20 +707,33 @@ void menuUtama() {
             case 1: 
                 listMenu();
                 system("pause");
-                getch();
                 break;
             case 2: 
                 tambahList();
                 system("pause");
-                getch();
                 break;
-            case 3: printf(">> Edit List\n"); system("pause"); break;
-            case 4: printf(">> Hapus List\n"); system("pause"); break;
-            case 5: printf(">> Pemesanan\n"); system("pause"); break;
-            case 6: printf(">> Tambah Sparepart\n"); system("pause"); break;
+            case 3:
+                editList();
+                system("pause");
+                break;
+            case 4:
+                hapusList();
+                system("pause");
+                break;
+            case 5:
+                pemesananJasa();
+                system("pause");
+                break;
+            case 6: 
+                tambahanPesanan();
+                system("pause");
+                break;
             case 7: printf(">> Cetak Struk\n"); system("pause"); break;
             case 8: printf(">> Pembayaran\n"); system("pause"); break;
-            case 9: printf(">> Rumah Pola\n"); system("pause"); break;
+            case 9:
+                rumahCerobong();
+                system("pause");
+                break;
             case 10: printf(">> Bendera\n"); system("pause"); break;
             case 11: 
                 printf("Terima kasih!\n");

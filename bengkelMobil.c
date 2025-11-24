@@ -524,36 +524,54 @@ void hapusList() {
 void pemesananJasa() {
     system("cls");
 
+    if (totalOrders >= MAX) {
+        printf("Antrian penuh. Tidak bisa menambah pesanan.\n");
+        getch();
+        return;
+    }
+
     Order *o = &orders[totalOrders];
     o->id = nextOrderID++;
     o->totalItem = 0;
     o->totalHarga = 0;
     o->paid = 0;
 
+    getchar();
+
+    printf("=== DATA PEMESANAN JASA PERBAIKAN ===\n");
+
+
     int pilih, jumlah;
 
     while (1) {
         system("cls");
-        printf("=== PEMESANAN JASA PERBAIKAN ===\n");
+        printf("=== PEMESANAN JASA PERBAIKAN (ID %d) ===\n", o->id);
         printf("1. Pilih Sparepart\n");
         printf("2. Pilih Jasa\n");
         printf("3. Selesai\n");
         printf("Pilih: ");
-        scanf("%d", &pilih);
+        if (scanf("%d", &pilih) != 1) { while(getchar()!='\n'); continue; }
 
         if (pilih == 1) {
             for (int i = 0; i < totalSparepart; i++) {
-                printf("%d. %s (Rp %d)\n", i+1, spareParts[i].nama, spareParts[i].harga);
+                printf("%d. %s (Rp %d) | Stok: %d\n", i+1, spareParts[i].nama, spareParts[i].harga, spareParts[i].stok);
             }
 
             printf("Pilih sparepart: ");
             int sp;
             scanf("%d", &sp);
-
             if (sp < 1 || sp > totalSparepart) continue;
 
             printf("Jumlah: ");
             scanf("%d", &jumlah);
+            if (jumlah <= 0) continue;
+            if (jumlah > spareParts[sp-1].stok) {
+                printf("Stok tidak cukup. Stok tersedia: %d\n", spareParts[sp-1].stok);
+                getch();
+                continue;
+            }
+
+            spareParts[sp-1].stok -= jumlah;
 
             strcpy(o->items[o->totalItem].namaItem, spareParts[sp-1].nama);
             o->items[o->totalItem].jumlah = jumlah;
@@ -571,7 +589,6 @@ void pemesananJasa() {
             printf("Pilih jasa: ");
             int js;
             scanf("%d", &js);
-
             if (js < 1 || js > totalJasa) continue;
 
             strcpy(o->items[o->totalItem].namaItem, jasaList[js-1].jenis);
@@ -581,6 +598,7 @@ void pemesananJasa() {
             o->totalHarga += o->items[o->totalItem].harga;
             o->totalItem++;
         }
+
         else break;
     }
 
@@ -608,10 +626,7 @@ void tambahanPesanan() {
 
     int idx = -1;
     for (int i = 0; i < totalOrders; i++) {
-        if (orders[i].id == id) {
-            idx = i;
-            break;
-        }
+        if (orders[i].id == id) { idx = i; break; }
     }
 
     if (idx == -1) {
@@ -630,7 +645,6 @@ void tambahanPesanan() {
 
     int pilih, jumlah;
 
-
     while (1) {
         system("cls");
         printf("=== TAMBAH PESANAN (ID %d) ===\n", id);
@@ -638,13 +652,13 @@ void tambahanPesanan() {
         printf("2. Tambah Jasa\n");
         printf("3. Selesai\n");
         printf("Pilih: ");
-        scanf("%d", &pilih);
+        if (scanf("%d", &pilih) != 1) { while(getchar()!='\n'); continue; }
 
         if (pilih == 1) {
             for (int i = 0; i < totalSparepart; i++)
-                printf("%d. %s (Rp %d)\n", i+1, spareParts[i].nama, spareParts[i].harga);
+                printf("%d. %s (Rp %d) | Stok: %d\n", i+1, spareParts[i].nama, spareParts[i].harga, spareParts[i].stok);
 
-            int sp;  
+            int sp;
             printf("Pilih sparepart: ");
             scanf("%d", &sp);
 
@@ -652,6 +666,14 @@ void tambahanPesanan() {
 
             printf("Jumlah: ");
             scanf("%d", &jumlah);
+            if (jumlah <= 0) continue;
+            if (jumlah > spareParts[sp-1].stok) {
+                printf("Stok tidak cukup. Stok tersedia: %d\n", spareParts[sp-1].stok);
+                getch();
+                continue;
+            }
+
+            spareParts[sp-1].stok -= jumlah;
 
             strcpy(o->items[o->totalItem].namaItem, spareParts[sp-1].nama);
             o->items[o->totalItem].jumlah = jumlah;
@@ -660,6 +682,7 @@ void tambahanPesanan() {
             o->totalHarga += o->items[o->totalItem].harga;
             o->totalItem++;
         }
+
         else if (pilih == 2) {
             for (int i = 0; i < totalJasa; i++)
                 printf("%d. %s (Rp %d)\n", i+1, jasaList[i].jenis, jasaList[i].harga);
@@ -683,6 +706,113 @@ void tambahanPesanan() {
 
     printf("Total terbaru: Rp %d\n", o->totalHarga);
     getch();
+}
+
+
+
+void inputMobilServis() {
+
+    int currentQueue = 0;
+    for (int i = 0; i < totalOrders; i++) {
+        if (orders[i].paid == 0) currentQueue++;
+    }
+
+    if (currentQueue >= queueLimit) {
+        printf("Antrian penuh (%d/%d). Tidak dapat menambah mobil.\n", currentQueue, queueLimit);
+        getch();
+        return;
+    }
+
+    if (totalOrders >= MAX) {
+        printf("Batas penyimpanan pesanan tercapai.\n");
+        getch();
+        return;
+    }
+
+    Order *o = &orders[totalOrders];
+    o->id = nextOrderID++;
+    o->totalItem = 0;
+    o->totalHarga = 0;
+    o->paid = 0;
+
+    o->mobil.namaCustomer[0] = '\0';
+    o->mobil.plat[0] = '\0';
+    o->mobil.jenisMobil[0] = '\0';
+
+    getchar();
+
+    system("cls");
+    printf("=== INPUT MOBIL SERVIS BARU ===\n");
+    printf("Nama Pelanggan: ");
+    fgets(o->mobil.namaCustomer, sizeof(o->mobil.namaCustomer), stdin);
+    o->mobil.namaCustomer[strcspn(o->mobil.namaCustomer, "\n")] = 0;
+
+    printf("Plat Nomor: ");
+    fgets(o->mobil.plat, sizeof(o->mobil.plat), stdin);
+    o->mobil.plat[strcspn(o->mobil.plat, "\n")] = 0;
+
+    printf("Jenis Mobil: ");
+    fgets(o->mobil.jenisMobil, sizeof(o->mobil.jenisMobil), stdin);
+    o->mobil.jenisMobil[strcspn(o->mobil.jenisMobil, "\n")] = 0;
+
+
+    totalOrders++;
+
+   
+    currentQueue = 0;
+    for (int i = 0; i < totalOrders; i++) if (orders[i].paid == 0) currentQueue++;
+
+    printf("\nData mobil baru berhasil disimpan!\n");
+    printf("Antrian saat ini: %d / %d\n", currentQueue, queueLimit);
+    printf("Tekan Enter untuk kembali ke menu...");
+    getchar();
+}
+
+
+void lihatAntrian() {
+    system("cls");
+    printf("=== LIHAT ANTRIAN MOBIL SERVIS ===\n\n");
+
+    int currentQueue = 0;
+    for (int i = 0; i < totalOrders; i++) {
+        if (orders[i].paid == 0) {
+            currentQueue++;
+            printf("ID Pesanan : %d\n", orders[i].id);
+            if (strlen(orders[i].mobil.namaCustomer) > 0)
+                printf("Customer   : %s\n", orders[i].mobil.namaCustomer);
+            if (strlen(orders[i].mobil.plat) > 0)
+                printf("Plat       : %s\n", orders[i].mobil.plat);
+            if (strlen(orders[i].mobil.jenisMobil) > 0)
+                printf("Mobil      : %s\n", orders[i].mobil.jenisMobil);
+            printf("----------------------------------\n");
+        }
+    }
+
+    printf("\nAntrian saat ini: %d / %d\n", currentQueue, queueLimit);
+    printf("Tekan Enter untuk kembali...");
+    getchar();
+    getch();
+}
+void menuInputService() {
+    int pilih;
+    do {
+        system("cls");
+        printf("=== MENU INPUT SERVICE MOBIL ===\n");
+        printf("1. Input Mobil Servis Baru\n");
+        printf("2. Lihat Antrian Mobil Servis\n");
+        printf("9. Kembali ke Menu Utama\n");
+        printf("Pilihan Anda [1, 2, 9]: ");
+        if (scanf("%d", &pilih) != 1) { while(getchar()!='\n'); continue; }
+
+        getchar(); 
+        if (pilih == 1) inputMobilServis();
+        else if (pilih == 2) lihatAntrian();
+        else if (pilih == 9) break;
+        else {
+            printf("Pilihan tidak valid.\n");
+            getch();
+        }
+    } while (1);
 }
 
 void cetak_baris_bendera_animasi(int lebar, char *warna) {

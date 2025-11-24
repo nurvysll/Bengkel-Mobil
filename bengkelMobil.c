@@ -4,6 +4,13 @@
 #include <conio.h>
 #include <windows.h>
 
+#define RESET     "\x1b[0m"
+#define MERAH     "\x1b[41m"
+#define PUTIH     "\x1b[47m"
+#define KARAKTER_BENDERA ' '
+#define JEDA_MIKRODETIK 40000
+#define LEBAR_MULTIPLIER 7
+
 #define MAX 100
 #define MAX_AKUN 100
 
@@ -676,6 +683,113 @@ void tambahanPesanan() {
 
     printf("Total terbaru: Rp %d\n", o->totalHarga);
     getch();
+}
+
+void cetak_baris_bendera_animasi(int lebar, char *warna) {
+    printf("%s", warna);
+    fflush(stdout);
+
+    for (int j = 0; j < lebar; j++) {
+        printf("%c", KARAKTER_BENDERA);
+        fflush(stdout);
+        usleep(JEDA_MIKRODETIK);
+    }
+    printf("%s\n", RESET);
+    fflush(stdout);
+}
+
+void cetak_bendera_loading(int tinggi_input) {
+
+    #ifdef _WIN32
+        system("cls");
+    #else
+        system("clear");
+    #endif
+
+    if (tinggi_input <= 0) tinggi_input = 1;
+
+    int tinggi_merah = tinggi_input;
+    int tinggi_putih = tinggi_input;
+
+    int tinggi_total_sebenarnya = tinggi_merah + tinggi_putih;
+
+
+    int lebar_bendera = tinggi_total_sebenarnya * LEBAR_MULTIPLIER / 2;
+
+    printf("================== Bendera Jaya ==================\n");
+    printf("Tinggi input: %d | Tinggi total: %d | Lebar: %d\n", tinggi_input, tinggi_total_sebenarnya, lebar_bendera);
+    printf("--- Merah: %d baris, Putih: %d baris ---\n", tinggi_merah, tinggi_putih);
+    printf("-------------------------------------------------------\n");
+
+
+    for (int i = 0; i < tinggi_merah; i++) {
+        cetak_baris_bendera_animasi(lebar_bendera, MERAH);
+    }
+
+
+    for (int i = 0; i < tinggi_putih; i++) {
+        cetak_baris_bendera_animasi(lebar_bendera, PUTIH);
+    }
+
+    printf("\n=======================================================\n");
+}
+
+
+
+
+void bersihkan_input_buffer() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
+}
+
+int main() {
+    int tinggi = 0;
+    char pilihan;
+
+    printf(">>> PROGRAM BENDERA MERAH PUTIH <<<\n\n");
+
+    do {
+        printf("Masukkan Tinggi Bendera : ");
+        if (scanf("%d", &tinggi) != 1) {
+            printf("Input Tinggi tidak valid. Coba lagi.\n");
+            bersihkan_input_buffer();
+            tinggi = 0;
+        }
+    } while (tinggi <= 0);
+
+    bersihkan_input_buffer();
+
+    do {
+        cetak_bendera_loading(tinggi);
+
+        printf("Masukkan pilihan (U: Ulang, X: Keluar): ");
+        if (scanf(" %c", &pilihan) != 1) {
+            bersihkan_input_buffer();
+            pilihan = ' ';
+        }
+
+        if (pilihan == 'U' || pilihan == 'u') {
+            bersihkan_input_buffer();
+
+             do {
+                printf("Masukkan Tinggi Per Bagian (Merah & Putih): ");
+                if (scanf("%d", &tinggi) != 1 || tinggi <= 0) {
+                    printf("Input Tinggi tidak valid atau nol. Coba lagi.\n");
+                    bersihkan_input_buffer();
+                }
+            } while (tinggi <= 0);
+            bersihkan_input_buffer();
+
+        } else if (pilihan == 'X' || pilihan == 'x') {
+            return;
+        } else {
+            printf("\nPilihan tidak dikenali. Tekan ENTER untuk kembali ke menu.\n");
+            bersihkan_input_buffer();
+            getchar();
+        }
+
+    } while (1);
+ 
 }
 
 void menuUtama() {

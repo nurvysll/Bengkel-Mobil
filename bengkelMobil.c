@@ -4,6 +4,8 @@
 #include <conio.h>
 #include <windows.h>
 
+//edit
+
 #define RESET     "\x1b[0m"
 #define MERAH     "\x1b[41m"
 #define PUTIH     "\x1b[47m"

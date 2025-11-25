@@ -249,15 +249,15 @@ void tambahList() {
         if (pilih == 1) {
             do {
                 system("cls");
-                printf("=== TAMBAH SPAREPART ===\n");
+                printf("============== TAMBAH SPAREPART ==============\n");
                 printf("Nama Sparepart : ");
                 fgets(spareParts[totalSparepart].nama, 50, stdin);
                 spareParts[totalSparepart].nama[strcspn(spareParts[totalSparepart].nama, "\n")] = 0;
 
-                printf("Stok        : ");
+                printf("Stok           : ");
                 scanf("%d", &spareParts[totalSparepart].stok);
 
-                printf("Harga       : ");
+                printf("Harga          : ");
                 scanf("%d", &spareParts[totalSparepart].harga);
 
                 totalSparepart++;
@@ -769,9 +769,7 @@ void inputMobilServis() {
     fgets(o->mobil.jenisMobil, sizeof(o->mobil.jenisMobil), stdin);
     o->mobil.jenisMobil[strcspn(o->mobil.jenisMobil, "\n")] = 0;
 
-
     totalOrders++;
-
    
     currentQueue = 0;
     for (int i = 0; i < totalOrders; i++) if (orders[i].paid == 0) currentQueue++;
@@ -957,33 +955,37 @@ void menuUtama() {
         switch(pil) {
             case 1: 
                 listMenu();
-                system("pause");
-                break;
+            break;
             case 2: 
                 tambahList();
                 system("pause");
-                break;
+            break;
             case 3:
                 editList();
                 system("pause");
-                break;
+            break;
             case 4:
                 hapusList();
                 system("pause");
-                break;
+            break;
             case 5:
                 pemesananJasa();
+                inputMobilServis();
                 system("pause");
-                break;
+            break;
             case 6: 
                 tambahanPesanan();
                 system("pause");
-                break;
-            case 7: printf(">> Cetak Struk\n"); system("pause"); break;
-            case 8: printf(">> Pembayaran\n"); system("pause"); break;
+            break;
+            case 7:
+                system("pause");
+            break;
+            case 8:
+                system("pause");
+            break;
             case 9:
                 system("pause");
-                break;
+            break;
             case 10:
             programBendera();
             system("pause");
